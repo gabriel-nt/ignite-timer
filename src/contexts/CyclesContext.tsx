@@ -1,23 +1,25 @@
+import { differenceInSeconds } from 'date-fns'
 import React, {
   createContext,
   useCallback,
   useState,
   useMemo,
   useContext,
+  useReducer,
+  useEffect,
 } from 'react'
+
+import {
+  addNewCycleAction,
+  interruptCurrentCycleAction,
+  markCurrentCycleAsFinishedAction,
+} from '../reducers/cycles/actions'
+
+import { Cycle, cyclesReducer } from '../reducers/cycles/reducer'
 
 interface CreateCycleData {
   task: string
   minutesAmount: number
-}
-
-interface Cycle {
-  id: string
-  task: string
-  minutesAmount: number
-  startDate: Date
-  interruptDate?: Date
-  finishedDate?: Date
 }
 
 interface CycleContextProviderProps {
@@ -40,50 +42,60 @@ export const CycleContext = createContext({} as CycleContextType)
 export const CyclesContextProvider = ({
   children,
 }: CycleContextProviderProps) => {
-  const [cycles, setCycles] = useState<Cycle[]>([])
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+  const [cyclesState, dispatch] = useReducer(
+    cyclesReducer,
+    {
+      cycles: [],
+      activeCycleId: null,
+    },
+    () => {
+      const storedStateAsJSON = localStorage.getItem(
+        '@ignite-timer:cycles-state-1.0.0',
+      )
+
+      if (storedStateAsJSON) {
+        return JSON.parse(storedStateAsJSON)
+      }
+
+      return {
+        cycles: [],
+        activeCycleId: null,
+      }
+    },
+  )
+
+  const { cycles, activeCycleId } = cyclesState
 
   const activeCycle = useMemo(
     () => cycles.find((cycle) => cycle.id === activeCycleId),
     [cycles, activeCycleId],
   )
 
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(() => {
+    if (activeCycle) {
+      return differenceInSeconds(new Date(), new Date(activeCycle.startDate))
+    }
+
+    return 0
+  })
+
+  useEffect(() => {
+    const stateJSON = JSON.stringify(cyclesState)
+
+    localStorage.setItem('@ignite-timer:cycles-state-1.0.0', stateJSON)
+  }, [cyclesState])
+
   const setSecondsPassed = (secondsPassed: number) => {
     setAmountSecondsPassed(secondsPassed)
   }
 
   const markCurrentCycleAsFinished = useCallback(() => {
-    setCycles((prevState) =>
-      prevState.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return {
-            ...cycle,
-            finishedDate: new Date(),
-          }
-        }
-
-        return cycle
-      }),
-    )
-  }, [activeCycleId])
+    dispatch(markCurrentCycleAsFinishedAction())
+  }, [])
 
   const interruptCurrentCycle = useCallback(() => {
-    setCycles((prevState) =>
-      prevState.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return {
-            ...cycle,
-            interruptDate: new Date(),
-          }
-        }
-
-        return cycle
-      }),
-    )
-
-    setActiveCycleId(null)
-  }, [activeCycleId])
+    dispatch(interruptCurrentCycleAction())
+  }, [])
 
   const createNewCycle = useCallback(
     ({ minutesAmount, task }: CreateCycleData) => {
@@ -94,8 +106,7 @@ export const CyclesContextProvider = ({
         startDate: new Date(),
       }
 
-      setActiveCycleId(newCycle.id)
-      setCycles((state) => [...state, newCycle])
+      dispatch(addNewCycleAction(newCycle))
       setAmountSecondsPassed(0)
     },
     [],
