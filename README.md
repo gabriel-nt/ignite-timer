@@ -23,8 +23,8 @@
 🚧  Finalizado  🚧
 </h3>
 
-#### 💻 Demonstração
-<img src="https://github.com/gabriel-nt/ignite-feed/blob/master/src/assets/cover.png" alt="Imagem de demonstração" />
+### 💻 Demonstração
+<img src="https://github.com/gabriel-nt/ignite-timer/blob/master/src/assets/cover.png" alt="Imagem de demonstração" />
 
 ### ⚙ Pré-requisitos
 
