@@ -23,6 +23,12 @@
 🚧  Finalizado  🚧
 </h3>
 
+### 📎 Features
+
+- [x] Lista de tarefas
+- [x] Interromper tarefa
+- [x] Iniciar tarefa
+
 ### 💻 Demonstração
 <img src="https://github.com/gabriel-nt/ignite-timer/blob/master/src/assets/cover.png" alt="Imagem de demonstração" />
 
