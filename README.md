@@ -69,7 +69,6 @@ Esse projeto foi utilizou das seguintes lib:
 - styled-components
 - react-router-dom
 - react-hook-form
-- immer
 - zod
 
 ###  📘 Padrão de Código
